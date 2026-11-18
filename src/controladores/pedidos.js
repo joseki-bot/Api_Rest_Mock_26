@@ -1,4 +1,13 @@
 const pedidos = require("./pedidos.mock.js");
+const cardapio = require("./cardapio.mock.js");
+
+/* */
+
+function validarLanche(lanche) {
+  return cardapio.find((comida) => comida.nome === String(lanche));
+}
+
+/* */
 
 function criarPedido(req, res) {
   let novoId;
@@ -10,9 +19,22 @@ function criarPedido(req, res) {
     novoId = 1;
   }
 
-  if (!dados.cliente || !dados.lanche || dados.valor === undefined) {
+  if (!dados.cliente || !dados.lanche) {
     return res.status(400).json({
       error: "ERRO 400: Dados incompletos para verificação do pedido.",
+    });
+  }
+
+  const Vall = validarLanche(dados.lanche);
+  if (!Vall) {
+    return res.status(400).json({
+      error: "ERRO: Lanche Invalido, Colocaque só pedido do cárdapio",
+    });
+  }
+
+  if (dados.valor !== undefined) {
+    return res.status(400).json({
+      erro: "Não informe o valor. O preço é definido automaticamente pelo cardápio.",
     });
   }
 
@@ -21,7 +43,7 @@ function criarPedido(req, res) {
     cliente: dados.cliente,
     lanche: dados.lanche,
     adicionais: dados.adicionais,
-    valor: dados.valor,
+    valor: Vall.valor,
     status: "pendente",
   };
 
@@ -82,12 +104,25 @@ function atualizarPedido(req, res) {
     return res.status(404).json("Usuario não encontrado");
   }
 
+  const Vall = validarLanche(lanche);
+  if (!Vall) {
+    return res.status(400).json({
+      error: "ERRO: Lanche Invalido, Colocaque só pedido do cárdapio",
+    });
+  }
+
+  if (valor !== undefined) {
+    return res.status(400).json({
+      erro: "Não informe o valor. O preço é definido automaticamente pelo cardápio.",
+    });
+  }
+
   const Att = {
     id: Pedido.id,
     cliente: cliente,
     lanche: lanche,
     adicionais: adicionais,
-    valor: valor,
+    valor: Vall.valor,
     status: status,
   };
 
@@ -143,17 +178,7 @@ function deletarPedido(req, res) {
   });
 }
 /*==========================================================*/
-/* const id = req.params.id;
 
-  const idPedido = pedidos.find((ID) => ID.id === parseInt(id));
-
-  if (!idPedido) {
-    return res.status(404).json({
-      erro: "Pedido não encontrado",
-    });
-  }
-  return res.status(200).json(idPedido);
-*/
 /*=== EXPORTANDO ===*/
 module.exports = {
   criarPedido,
